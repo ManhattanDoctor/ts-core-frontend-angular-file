@@ -1,0 +1,1 @@
+# ts-core-frontend-angular-file
