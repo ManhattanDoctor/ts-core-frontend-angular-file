@@ -1,0 +1,40 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "baseUrl": "./",
+        "sourceMap": true,
+        "declaration": true,
+        "skipLibCheck": true,
+        "downlevelIteration": true,
+        "experimentalDecorators": true,
+        "target": "es2015",
+        "module": "es2015",
+        "moduleResolution": "node",
+        "importHelpers": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "lib": ["es2017", "dom"],
+
+        "strict": true,
+        "strictFunctionTypes": false,
+        "noImplicitAny": false,
+        "strictNullChecks": false,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true
+    },
+    "angularCompilerOptions": {
+        "enableI18nLegacyMessageIdFormat": false,
+        "strictInputAccessModifiers": true,
+        "strictTemplates": true,
+
+        "enableIvy": true,
+        "compilationMode": "partial",
+        "skipTemplateCodegen": true,
+        "strictMetadataEmit": true,
+        "enableResourceInlining": true,
+        "fullTemplateTypeCheck": true,
+        "strictInjectionParameters": true
+    },
+    "include": ["src/*.ts", "src/**/*.ts"],
+    "exclude": ["node_modules", "**/*.spec.ts"]
+}

@@ -1,0 +1,60 @@
+{
+    "name": "local",
+    "version": "0.0.0",
+    "scripts": {
+        "build": "ng build --configuration production"
+    },
+    "author": {
+        "name": "Renat Gubaev",
+        "email": "renat.gubaev@gmail.com"
+    },
+    "license": "ISC",
+    "dependencies": {
+        "ng2-file-upload": "^4.0.0",
+        "ngx-image-cropper": "^7.0.2",
+        "@angular/animations": "^15.2.9",
+        "@angular/cdk": "^15.2.9",
+        "@angular/common": "^15.2.9",
+        "@angular/compiler": "^15.2.9",
+        "@angular/core": "^15.2.9",
+        "@angular/forms": "^15.2.9",
+        "@angular/material": "^15.2.9",
+        "@angular/material-moment-adapter": "^15.2.9",
+        "@angular/platform-browser": "^15.2.9",
+        "@angular/platform-browser-dynamic": "^15.2.9",
+        "@angular/router": "^15.2.9",
+        "@nguniversal/express-engine": "^15.2.1",
+        "@ts-core/angular": "^15.0.27",
+        "@ts-core/common": "~3.0.43",
+        "@ts-core/frontend": "~3.0.13",
+        "@types/numeral": "^2.0.2",
+        "bootstrap": "^5.2.3",
+        "csshake": "^1.7.0",
+        "interactjs": "1.10.11",
+        "moment": "^2.29.4",
+        "ngx-cookie": "^4.0.1",
+        "numeral": "^2.0.6",
+        "rxjs": "^7.8.0",
+        "tslib": "^2.6.0",
+        "zone.js": "^0.12.0"
+    },
+    "devDependencies": {
+        "@angular-devkit/architect": "^0.1500.5",
+        "@angular-devkit/build-angular": "^15.2.9",
+        "@angular-devkit/core": "^15.2.9",
+        "@angular/cli": "^15.2.9",
+        "@angular/compiler-cli": "^15.2.9",
+        "@types/node": "^14.18.53",
+        "del": "^6.0.0",
+        "gulp": "^4.0.2",
+        "gulp-clean": "^0.4.0",
+        "gulp-clean-dir": "^1.0.2",
+        "gulp-debug": "^4.0.0",
+        "gulp-run-command": "^0.0.10",
+        "gulp-typescript": "^5.0.1",
+        "ng-packagr": "^15.2.2",
+        "prettier": "^2.8.7",
+        "ts-node": "^10.7.0",
+        "typescript": "4.8.4"
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "name": "@ts-core/angular-file",
+    "version": "15.0.8",
+    "description": "File modules for frontend based on angular",
+    "main": "public-api.js",
+    "author": {
+        "name": "Renat Gubaev",
+        "email": "renat.gubaev@gmail.com"
+    },
+    "license": "ISC",
+    "peerDependencies": {
+        "@ts-core/angular-material": "~15.0.42",
+        "ng2-file-upload": "^4.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ManhattanDoctor/ts-core-frontend-angular-file.git"
+    },
+    "keywords": [
+        "typescript"
+    ],
+    "bugs": {
+        "url": "https://github.com/ManhattanDoctor/ts-core-frontend-angular-file/issues"
+    },
+    "homepage": "https://github.com/ManhattanDoctor/ts-core-frontend-angular-file#readme"
+}
