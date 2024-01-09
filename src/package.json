@@ -1,6 +1,6 @@
 {
     "name": "@ts-core/angular-file",
-    "version": "15.0.8",
+    "version": "17.0.1",
     "description": "File modules for frontend based on angular",
     "main": "public-api.js",
     "author": {
@@ -9,8 +9,8 @@
     },
     "license": "ISC",
     "peerDependencies": {
-        "@ts-core/angular-material": "~15.0.42",
-        "ng2-file-upload": "^4.0.0"
+        "@ts-core/angular": "~17.0.12",
+        "ng2-file-upload": "^5.0.0"
     },
     "repository": {
         "type": "git",
