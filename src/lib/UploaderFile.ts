@@ -30,8 +30,8 @@ export class UploaderFile<T> extends Loadable<UploaderFileEvent, UploaderFileEve
     //
     //--------------------------------------------------------------------------
 
-    protected _file: FileItem;
     protected _data: T;
+    protected _file: FileItem;
     protected _uploader: Uploader;
 
     //--------------------------------------------------------------------------
@@ -48,6 +48,7 @@ export class UploaderFile<T> extends Loadable<UploaderFileEvent, UploaderFileEve
         this.file.onCancel = this.handleCancel;
         this.file.onSuccess = this.handleSuccess;
         this.file.onProgress = this.handleProgress;
+        this.file.onComplete = this.handleComplete;
     }
 
     //--------------------------------------------------------------------------
@@ -74,7 +75,7 @@ export class UploaderFile<T> extends Loadable<UploaderFileEvent, UploaderFileEve
         this.observer.next(new ObservableData(LoadableEvent.COMPLETE, { status, response, headers }));
     };
 
-    protected handleItemComplete = (response: string, status: number, headers: ParsedResponseHeaders): void => {};
+    protected handleComplete = (response: string, status: number, headers: ParsedResponseHeaders): void => {};
 
     protected handleError = (response: string, status: number, headers: ParsedResponseHeaders): void => {
         this.status = LoadableStatus.ERROR;

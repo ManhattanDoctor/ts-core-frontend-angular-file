@@ -146,7 +146,6 @@ export class Uploader<T = any> extends Loadable<UploaderEvent, UploaderEventData
     };
 
     protected handleItemCancel = (item: FileItem, data: string): void => {
-        // this.attachments.delete(item);
         let file = this.fileGet(item);
         this.observer.next(new ObservableData(UploaderEvent.FILE_CANCELED, { file, data }));
     };
@@ -161,9 +160,7 @@ export class Uploader<T = any> extends Loadable<UploaderEvent, UploaderEventData
         this.observer.next(new ObservableData(UploaderEvent.FILE_COMPLETE, { file, response, status, headers }));
     };
 
-    protected handleItemComplete = (item: FileItem, response: string, status: number, headers: ParsedResponseHeaders): void => {
-        // console.log('handleItemComplete', response);
-    };
+    protected handleItemComplete = (item: FileItem, response: string, status: number, headers: ParsedResponseHeaders): void => {};
 
     protected handleItemError = (item: FileItem, response: string, status: number, headers: ParsedResponseHeaders): void => {
         let file = this.fileGet(item);

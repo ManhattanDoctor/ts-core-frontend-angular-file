@@ -81,9 +81,9 @@ const packageCompile = async (): Promise<void> => {
 const packageBuild = async (): Promise<void> => {
     // Update dependencies or install it
     if (await isFileExist(`package-lock.json`)) {
-        await run(`npm update`)();
+        await run(`npm update --force`)();
     } else {
-        await run(`npm install`)();
+        await run(`npm install --force`)();
     }
 
     // Remove output directory
