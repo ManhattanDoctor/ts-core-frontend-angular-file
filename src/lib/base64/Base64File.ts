@@ -26,7 +26,7 @@ export class Base64File extends File {
     public size: number;
     public name: string;
     public type: string;
-    public declare prototype: Blob;
+    declare public prototype: Blob;
     public lastModified: any;
     public lastModifiedDate: any;
     public webkitRelativePath: string;
