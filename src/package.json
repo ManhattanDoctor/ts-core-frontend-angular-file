@@ -1,6 +1,6 @@
 {
     "name": "@ts-core/angular-file",
-    "version": "19.0.1",
+    "version": "19.0.2",
     "description": "File modules for frontend based on angular",
     "main": "public-api.js",
     "author": {
@@ -11,6 +11,12 @@
     "peerDependencies": {
         "@ts-core/angular": "~19.0.0",
         "ng2-file-upload": "^4.0.0"
+    },
+    "overrides": {
+        "ng2-file-upload": {
+            "@angular/common": "^19.0.0",
+            "@angular/core": "^19.0.0"
+        }
     },
     "repository": {
         "type": "git",
