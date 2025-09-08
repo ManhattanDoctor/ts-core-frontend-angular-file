@@ -77,6 +77,7 @@ export class Uploader<T = any> extends Loadable<UploaderEvent, UploaderEventData
             case LoadableStatus.LOADING:
                 this.observer.next(new ObservableData(LoadableEvent.STARTED));
                 break;
+            case LoadableStatus.ERROR:
             case LoadableStatus.LOADED:
                 this.observer.next(new ObservableData(LoadableEvent.FINISHED));
                 break;
@@ -117,6 +118,9 @@ export class Uploader<T = any> extends Loadable<UploaderEvent, UploaderEventData
     protected handleAfterAddingAll = (items: Array<FileItem>): void => {
         let files = _.compact(items.map(item => this.fileGet(item)));
         this.observer.next(new ObservableData(UploaderEvent.ADDED, files));
+        if (this.isAutoUpload) {
+            this.status = LoadableStatus.LOADING;
+        }
     };
 
     protected handleCompleteAll = (): void => {

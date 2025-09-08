@@ -1,5 +1,4 @@
 import { NgModule } from '@angular/core';
-import { VIModule } from '@ts-core/angular';
 import { CommonModule } from '@angular/common';
 // import { MatIconModule } from '@angular/material/icon';
 // import { MatButtonModule } from '@angular/material/button';
@@ -10,16 +9,13 @@ import { UploaderDropDirective } from './directive';
 
 import * as _ from 'lodash';
 
-const IMPORTS = [VIModule, CommonModule, FileUploadModule];
-
-const DECLARATIONS = [UploaderDropDirective];
-const PROVIDERS = [];
-const EXPORTS = [...IMPORTS, ...DECLARATIONS];
+const imports = [CommonModule, FileUploadModule];
+const declarations = [UploaderDropDirective];
+const exports = [...imports, ...declarations];
 
 @NgModule({
-    imports: IMPORTS,
-    declarations: DECLARATIONS,
-    providers: PROVIDERS,
-    exports: EXPORTS
+    imports,
+    declarations,
+    exports
 })
 export class VIFileModule {}

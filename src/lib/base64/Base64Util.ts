@@ -1,8 +1,8 @@
 import { Base64Source } from './Base64Source';
 import { Base64File } from './Base64File';
 import { Uploader } from '../Uploader';
-import { ViewUtil } from '@ts-core/angular';
 import { PromiseHandler } from '@ts-core/common';
+import { ViewUtil } from '@ts-core/angular';
 import { FileItem } from 'ng2-file-upload';
 import * as _ from 'lodash';
 
