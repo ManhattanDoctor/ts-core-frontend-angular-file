@@ -1,7 +1,7 @@
 {
     "name": "@ts-core/angular-file",
-    "version": "19.0.4",
-    "description": "File modules for frontend based on angular",
+    "version": "21.0.41",
+    "description": "Angular file upload module with drag-and-drop support, progress tracking, and validation. Part of ts-core ecosystem.",
     "main": "public-api.js",
     "author": {
         "name": "Renat Gubaev",
@@ -9,15 +9,22 @@
     },
     "license": "ISC",
     "peerDependencies": {
-        "ng2-file-upload": "^8.0.0",
-        "@ts-core/angular": "~19.0.12"
+        "ng2-file-upload": "^9.0.0",
+        "@ts-core/angular": "~21.0.0"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/ManhattanDoctor/ts-core-frontend-angular-file.git"
     },
     "keywords": [
-        "typescript"
+        "typescript",
+        "angular",
+        "file",
+        "file-upload",
+        "upload",
+        "drag-and-drop",
+        "ts-core",
+        "frontend"
     ],
     "bugs": {
         "url": "https://github.com/ManhattanDoctor/ts-core-frontend-angular-file/issues"
