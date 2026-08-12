@@ -1,6 +1,6 @@
 {
     "name": "@ts-core/angular-file",
-    "version": "21.0.41",
+    "version": "22.0.0",
     "description": "Angular file upload module with drag-and-drop support, progress tracking, and validation. Part of ts-core ecosystem.",
     "main": "public-api.js",
     "author": {
@@ -9,8 +9,8 @@
     },
     "license": "ISC",
     "peerDependencies": {
-        "ng2-file-upload": "^9.0.0",
-        "@ts-core/angular": "~21.0.0"
+        "ng2-file-upload": "^10.0.0",
+        "@ts-core/angular": "~22.0.0"
     },
     "repository": {
         "type": "git",

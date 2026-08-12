@@ -14,8 +14,9 @@ const declarations = [UploaderDropDirective];
 const exports = [...imports, ...declarations];
 
 @NgModule({
-    imports,
-    declarations,
+    // Директива стала самостоятельной, поэтому модуль её импортирует и отдаёт дальше:
+    // тем, кто собирает приложение на модулях, менять ничего не нужно
+    imports: [...imports, ...declarations],
     exports
 })
 export class VIFileModule {}

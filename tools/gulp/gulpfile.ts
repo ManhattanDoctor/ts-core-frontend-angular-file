@@ -1,7 +1,7 @@
-import * as del from 'del';
+import del from 'del';
 import * as fs from 'fs';
 import { dest, series, src, task } from 'gulp';
-import * as clean from 'gulp-clean';
+import clean from 'gulp-clean';
 import run from 'gulp-run-command';
 import { createProject } from 'gulp-typescript';
 

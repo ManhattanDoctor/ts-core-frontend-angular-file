@@ -5,8 +5,7 @@ import { UploaderDropManager } from './UploaderDropManager';
 import * as _ from 'lodash';
 
 @Directive({
-    selector: '[vi-file-drop]',
-    standalone: false
+    selector: '[vi-file-drop]'
 })
 export class UploaderDropDirective extends DestroyableContainer {
     //--------------------------------------------------------------------------
