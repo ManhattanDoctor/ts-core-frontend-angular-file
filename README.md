@@ -1,493 +1,269 @@
-# @ts-core/frontend-angular-file
+# @ts-core/angular-file
 
-Angular библиотека для загрузки файлов с поддержкой drag-and-drop, конвертации в Base64 и утилитами для работы с файлами.
+> Загрузка файлов экосистемы ts-core: очередь, ход отправки, перетаскивание и работа с Base64
+
+[![npm version](https://img.shields.io/npm/v/@ts-core/angular-file.svg)](https://www.npmjs.com/package/@ts-core/angular-file)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+
+Надстройка над `ng2-file-upload`, приводящая загрузку файлов к принятой в экосистеме модели: `Uploader` — наблюдаемый источник событий, каждый файл — `Loadable` со своим состоянием, отменой и результатом разбора ответа сервера.
 
 ## Содержание
 
+- [Описание](#описание)
+  - [Основные возможности](#основные-возможности)
 - [Установка](#установка)
-- [Зависимости](#зависимости)
-- [Настройка модуля](#настройка-модуля)
-- [Загрузка файлов](#загрузка-файлов)
-- [Drag & Drop](#drag--drop)
-- [Конвертация в Base64](#конвертация-в-base64)
-- [API Reference](#api-reference)
-- [Примеры использования](#примеры-использования)
-- [Связанные пакеты](#связанные-пакеты)
+  - [Зависимости](#зависимости)
+  - [Ограничение peer-зависимости](#ограничение-peer-зависимости)
+  - [Требования к серверу](#требования-к-серверу)
+- [Быстрый старт](#быстрый-старт)
+- [Загрузчик](#загрузчик)
+  - [Создание и очередь](#создание-и-очередь)
+  - [События](#события)
+  - [Разбор ответа сервера](#разбор-ответа-сервера)
+  - [Дополнительные поля формы](#дополнительные-поля-формы)
+- [Перетаскивание](#перетаскивание)
+- [Работа с Base64](#работа-с-base64)
+- [API](#api)
+- [Структура проекта](#структура-проекта)
+- [История изменений](#история-изменений)
+- [Лицензия](#лицензия)
+
+## Описание
+
+### Основные возможности
+
+- **Очередь файлов** — добавление, отправка, отмена и удаление по одному или всей очередью
+- **Ход отправки** — общий процент и процент по каждому файлу через наблюдаемые события
+- **Разбор ответа** — сервер возвращает данные, они попадают в `file.data` типизированными
+- **Перетаскивание** — директива `[vi-file-drop]` с подсветкой зоны при наведении
+- **Base64** — добавление изображения в очередь строкой, чтение и изменение размера
 
 ## Установка
 
 ```bash
-npm install @ts-core/frontend-angular-file
+npm install @ts-core/angular-file
 ```
 
-```bash
-yarn add @ts-core/frontend-angular-file
+### Зависимости
+
+```json
+{
+    "@ts-core/angular": "~22.0.1",
+    "ng2-file-upload": "^10.0.0"
+}
 ```
 
-```bash
-pnpm add @ts-core/frontend-angular-file
+### Ограничение peer-зависимости
+
+`ng2-file-upload` объявляет совместимость с Angular 20, хотя работает и на 22. Пока это не исправлено в самом пакете, приложение обязано снять ограничение:
+
+```json
+// package.json приложения
+{
+    "overrides": {
+        "ng2-file-upload": {
+            "@angular/common": "^22.0.0",
+            "@angular/core": "^22.0.0"
+        }
+    }
+}
 ```
 
-## Зависимости
+Без этого `npm install` завершается ошибкой разрешения зависимостей.
 
-| Пакет | Описание |
-|-------|----------|
-| `@angular/core` | Angular фреймворк |
-| `@ts-core/angular` | Angular утилиты |
-| `@ts-core/common` | Базовые классы и интерфейсы |
-| `@ts-core/frontend` | Фронтенд утилиты |
-| `ng2-file-upload` | Библиотека загрузки файлов |
+### Требования к серверу
 
-## Настройка модуля
+Загрузка выполняется с признаком `withCredentials`, поэтому при отправке на другой источник сервер не может отвечать `Access-Control-Allow-Origin: *` — нужен конкретный источник и разрешение учётных данных:
 
-Импортируйте модуль в вашем Angular приложении:
-
-```typescript
-import { VIFileModule } from '@ts-core/frontend-angular-file';
-
-@NgModule({
-    imports: [
-        VIFileModule
-    ]
-})
-export class AppModule {}
+```
+Access-Control-Allow-Origin: https://app.example.com
+Access-Control-Allow-Credentials: true
 ```
 
-Для standalone компонентов:
+Иначе браузер отклоняет запрос, а загрузчик сообщает об ошибке без подробностей.
 
-```typescript
-import { VIFileModule } from '@ts-core/frontend-angular-file';
+## Быстрый старт
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { Uploader, UploaderDropDirective } from '@ts-core/angular-file';
+import { takeUntil } from 'rxjs';
 
 @Component({
-    standalone: true,
-    imports: [VIFileModule]
+    selector: 'file-upload',
+    imports: [UploaderDropDirective],
+    template: `
+        <div [vi-file-drop]="uploader" className="border-primary" class="border rounded p-4">
+            Перетащите файл сюда или выберите:
+            <input type="file" multiple (change)="selected($event)" />
+        </div>
+        <p>Отправлено: {{ progress() }}%</p>
+    `
 })
-export class MyComponent {}
+export class FileUploadComponent {
+    public readonly uploader = new Uploader<IFile>('/api/file/upload');
+    public progress = signal(0);
+
+    constructor() {
+        this.uploader.progress.pipe(takeUntil(this.uploader.destroyed)).subscribe(value => this.progress.set(value));
+    }
+
+    public selected(event: Event): void {
+        let items = (event.target as HTMLInputElement).files;
+        if (items != null) {
+            this.uploader.uploader.addToQueue(Array.from(items));
+        }
+    }
+}
 ```
 
-## Загрузка файлов
+## Загрузчик
 
-### Базовое использование
+### Создание и очередь
 
-```typescript
-import { Uploader, UploaderFile } from '@ts-core/frontend-angular-file';
+```ts
+let uploader = new Uploader<IFile>(url, isAutoUpload, maxFiles);
+```
 
-// Создание экземпляра загрузчика
-const uploader = new Uploader({
-    url: '/api/upload',
-    maxFileSize: 10 * 1024 * 1024,  // 10 МБ
-    allowedMimeType: ['image/jpeg', 'image/png', 'application/pdf']
-});
+| Параметр | По умолчанию | Назначение |
+|---|---|---|
+| `url` | — | адрес приёмника |
+| `isAutoUpload` | `true` | отправлять сразу после добавления |
+| `maxFiles` | без ограничения | предельный размер очереди |
 
-// Обработчик добавления файла
-uploader.onAfterAddingFile = (file: UploaderFile) => {
-    console.log('Файл добавлен:', file.name);
-};
-
-// Обработчик завершения загрузки
-uploader.onCompleteItem = (file, response, status) => {
-    console.log('Загрузка завершена:', response);
-};
-
-// Обработчик ошибки
-uploader.onErrorItem = (file, response, status) => {
-    console.error('Ошибка загрузки:', response);
-};
-
-// Запуск загрузки всех файлов
+```ts
 uploader.uploadAll();
+uploader.cancelAll();
+uploader.removeAll();
+
+uploader.upload(file);
+uploader.cancel(file);
+uploader.remove(file);
+
+uploader.files;        // Array<UploaderFile>
+uploader.hasFiles;     // есть ли что отправлять
+uploader.isUploading;  // идёт ли отправка
 ```
 
-### Конфигурация Uploader
+### События
 
-```typescript
-const uploader = new Uploader({
-    url: '/api/upload',                    // URL для загрузки
-    method: 'POST',                        // HTTP метод
-    maxFileSize: 5 * 1024 * 1024,          // Макс. размер файла (5 МБ)
-    allowedMimeType: ['image/*'],          // Разрешённые MIME типы
-    headers: [                              // Дополнительные заголовки
-        { name: 'Authorization', value: 'Bearer token' }
-    ],
-    autoUpload: false,                     // Автозагрузка после добавления
-    removeAfterUpload: true,               // Удалять из очереди после загрузки
-    queueLimit: 10                         // Лимит файлов в очереди
+```ts
+uploader.fileAdded.subscribe(file => { /* файл в очереди */ });
+uploader.fileProgress.subscribe(item => item.progress);
+uploader.fileComplete.subscribe(item => item.response);
+uploader.fileError.subscribe(item => item.error);
+uploader.fileCanceled.subscribe(item => { /* отмена */ });
+uploader.fileRemoved.subscribe(file => { /* удалён из очереди */ });
+
+uploader.added.subscribe(files => { /* добавлена группа файлов */ });
+uploader.progress.subscribe(value => { /* общий процент */ });
+uploader.fileAddingError.subscribe(item => item.filter);
+```
+
+Каждый `UploaderFile` сам является `Loadable`: у него есть `status`, `destroyed` и собственные события — удобно, когда строка списка подписывается только на свой файл.
+
+### Разбор ответа сервера
+
+```ts
+uploader.fileUploadedData = (file, response, status, headers) => TransformUtil.toClass(File, JSON.parse(response));
+
+uploader.fileComplete.subscribe(item => {
+    let value = item.file.data;   // разобранный ответ нужного типа
 });
 ```
 
-## Drag & Drop
+### Дополнительные поля формы
 
-### Директива viUploaderDrop
+```ts
+uploader.fileBuildForm = (file, form) => {
+    form.append('folderId', this.folder.id);
+    form.append('isPublic', 'true');
+};
+
+uploader.fileBeforeUpload = file => this.logger.log(`отправка ${file.file.file.name}`);
+```
+
+## Перетаскивание
 
 ```html
-<div viUploaderDrop
-     [uploader]="uploader"
-     [class.active]="hasFileOver"
-     (fileOver)="hasFileOver = $event"
-     class="drop-zone">
-    <p *ngIf="!hasFileOver">Перетащите файлы сюда</p>
-    <p *ngIf="hasFileOver">Отпустите для загрузки</p>
+<div [vi-file-drop]="uploader" className="drop-active" class="drop-zone">
+    Перетащите файлы сюда
 </div>
 ```
 
-```typescript
-import { Component } from '@angular/core';
-import { Uploader } from '@ts-core/frontend-angular-file';
+| Вход | Назначение |
+|---|---|
+| `[vi-file-drop]` | загрузчик, в очередь которого попадут файлы |
+| `className` | класс, добавляемый элементу, пока над ним удерживают файл |
 
-@Component({
-    selector: 'app-upload',
-    template: `
-        <div viUploaderDrop
-             [uploader]="uploader"
-             [class.active]="hasFileOver"
-             (fileOver)="hasFileOver = $event"
-             class="drop-zone">
-            Перетащите файлы сюда
-        </div>
-    `,
-    styles: [`
-        .drop-zone {
-            border: 2px dashed #ccc;
-            padding: 40px;
-            text-align: center;
-        }
-        .drop-zone.active {
-            border-color: #007bff;
-            background: #f0f8ff;
-        }
-    `]
-})
-export class UploadComponent {
-    uploader = new Uploader({ url: '/api/upload' });
-    hasFileOver = false;
-}
+Директива сама подавляет стандартное поведение браузера — без этого страница просто открыла бы перетащенный файл.
+
+## Работа с Base64
+
+```ts
+import { Base64Util } from '@ts-core/angular-file';
+
+// добавить изображение в очередь как файл
+let item = Base64Util.addBase64File(uploader, base64);
+
+// прочитать и заменить содержимое
+let value = Base64Util.getBase64FromFile(item);
+Base64Util.setBase64ToFile(item, другоеЗначение);
+
+// уменьшить перед отправкой
+let small = await Base64Util.resizeBase64(base64, 256, 256);
 ```
 
-### UploaderDropManager
+Загрузка изображения по адресу или из файла:
 
-```typescript
-import { UploaderDropDirective, UploaderDropManager } from '@ts-core/frontend-angular-file';
+```ts
+let loader = new Base64UrlLoader();
+let base64 = await loader.load('https://example.com/image.jpg');
 
-@Component({
-    template: `
-        <div #dropZone viUploaderDrop [uploader]="uploader">
-            Зона загрузки
-        </div>
-    `
-})
-export class UploadComponent implements AfterViewInit {
-    @ViewChild('dropZone', { read: UploaderDropDirective })
-    dropDirective: UploaderDropDirective;
-
-    uploader = new Uploader({ url: '/api/upload' });
-
-    ngAfterViewInit(): void {
-        // Доступ к менеджеру
-        const manager = this.dropDirective.manager;
-    }
-}
+let fileLoader = new Base64FileLoader();
+let value = await fileLoader.load(file);
 ```
 
-## Конвертация в Base64
+`Base64File` — реализация `File` поверх строки Base64, поэтому такой файл проходит по обычному пути отправки.
 
-### Base64FileLoader
+## API
 
-Конвертация File в Base64:
+| Класс | Назначение |
+|---|---|
+| `Uploader<T>` | очередь, отправка, события |
+| `UploaderFile<T>` | один файл: состояние, ход отправки, результат |
+| `UploaderDropDirective` | зона перетаскивания `[vi-file-drop]` |
+| `UploaderDropManager` | та же логика без Angular — для своих компонентов |
+| `Base64Util` | добавление, чтение и изменение размера Base64 |
+| `Base64File`, `Base64Source` | файл и источник поверх строки Base64 |
+| `Base64UrlLoader`, `Base64FileLoader` | загрузка Base64 по адресу и из файла |
+| `VIFileModule` | вариант для приложений на `NgModule` |
 
-```typescript
-import { Base64FileLoader, Base64File } from '@ts-core/frontend-angular-file';
+## Структура проекта
 
-async function convertToBase64(file: File): Promise<Base64File> {
-    const loader = new Base64FileLoader();
-    return loader.load(file);
-}
-
-// Использование
-const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-input.addEventListener('change', async () => {
-    const file = input.files[0];
-    const base64 = await convertToBase64(file);
-
-    console.log('Имя:', base64.name);
-    console.log('Data URL:', base64.data);
-    console.log('MIME тип:', base64.mimeType);
-});
+```
+src/
+├── VIFileModule.ts               модуль для приложений на NgModule
+├── directive/
+│   ├── UploaderDropDirective.ts  зона перетаскивания
+│   └── UploaderDropManager.ts    обработка событий перетаскивания
+└── lib/
+    ├── Uploader.ts               очередь и отправка
+    ├── UploaderFile.ts           состояние одного файла
+    └── base64/                   работа с Base64
 ```
 
-### Base64UrlLoader
+## История изменений
 
-Загрузка изображения по URL и конвертация в Base64:
+### 22.0.1
 
-```typescript
-import { Base64UrlLoader } from '@ts-core/frontend-angular-file';
+- Поддержка Angular 22 и TypeScript 6
+- `UploaderDropDirective` стала самостоятельной, `standalone: false` снят
+- `ng2-file-upload` обновлён до 10-й версии
+- Сборка переведена на `@angular/build:ng-packagr`
 
-async function loadImageAsBase64(url: string): Promise<Base64File> {
-    const loader = new Base64UrlLoader();
-    return loader.load(url);
-}
-
-// Использование
-const imageBase64 = await loadImageAsBase64('https://example.com/image.png');
-console.log('Base64:', imageBase64.data);
-```
-
-### Класс Base64File
-
-```typescript
-import { Base64File, Base64Source } from '@ts-core/frontend-angular-file';
-
-const base64File = new Base64File();
-base64File.name = 'image.png';
-base64File.data = 'data:image/png;base64,iVBORw0KGgo...';
-base64File.source = Base64Source.FILE;
-
-// Получение MIME типа из data URL
-console.log(base64File.mimeType);  // 'image/png'
-
-// Получение расширения
-console.log(base64File.extension);  // 'png'
-```
-
-### Base64Util
-
-Утилиты для работы с Base64:
-
-```typescript
-import { Base64Util } from '@ts-core/frontend-angular-file';
-
-// Конвертация File в Base64 строку
-const file: File = input.files[0];
-const base64String = await Base64Util.toBase64(file);
-
-// Конвертация Base64 в Blob
-const blob = Base64Util.toBlob(base64String);
-
-// Получение MIME типа из Data URL
-const mimeType = Base64Util.getMimeType('data:image/png;base64,...');
-// 'image/png'
-```
-
-## API Reference
-
-### Uploader
-
-| Свойство/Метод | Тип | Описание |
-|----------------|-----|----------|
-| `url` | `string` | URL для загрузки |
-| `maxFileSize` | `number` | Максимальный размер файла в байтах |
-| `allowedMimeType` | `string[]` | Разрешённые MIME типы |
-| `queue` | `UploaderFile[]` | Файлы в очереди |
-| `progress` | `number` | Общий прогресс (0-100) |
-| `isUploading` | `boolean` | Идёт загрузка |
-| `uploadAll()` | `void` | Загрузить все файлы |
-| `cancelAll()` | `void` | Отменить все загрузки |
-| `clearQueue()` | `void` | Очистить очередь |
-| `addToQueue(files)` | `void` | Добавить файлы в очередь |
-| `removeFromQueue(file)` | `void` | Удалить файл из очереди |
-| `onAfterAddingFile` | `callback` | Файл добавлен |
-| `onCompleteItem` | `callback` | Загрузка завершена |
-| `onErrorItem` | `callback` | Ошибка загрузки |
-| `onProgressItem` | `callback` | Прогресс загрузки |
-
-### UploaderFile
-
-| Свойство | Тип | Описание |
-|----------|-----|----------|
-| `name` | `string` | Имя файла |
-| `size` | `number` | Размер в байтах |
-| `type` | `string` | MIME тип |
-| `progress` | `number` | Прогресс загрузки (0-100) |
-| `isUploading` | `boolean` | Загружается |
-| `isSuccess` | `boolean` | Загружен успешно |
-| `isError` | `boolean` | Ошибка загрузки |
-| `isReady` | `boolean` | Готов к загрузке |
-| `_file` | `File` | Оригинальный File объект |
-
-### UploaderDropDirective
-
-| Вход/Выход | Тип | Описание |
-|------------|-----|----------|
-| `[uploader]` | `Uploader` | Экземпляр загрузчика |
-| `(fileOver)` | `EventEmitter<boolean>` | Файл над зоной |
-
-### Base64File
-
-| Свойство | Тип | Описание |
-|----------|-----|----------|
-| `name` | `string` | Имя файла |
-| `data` | `string` | Data URL (data:mime;base64,...) |
-| `source` | `Base64Source` | Источник (FILE, URL, CAMERA) |
-| `mimeType` | `string` | MIME тип (readonly) |
-| `extension` | `string` | Расширение файла (readonly) |
-
-## Примеры использования
-
-### Компонент загрузки изображений
-
-```typescript
-import { Component } from '@angular/core';
-import { Uploader, Base64FileLoader, UploaderFile } from '@ts-core/frontend-angular-file';
-
-@Component({
-    selector: 'app-image-upload',
-    template: `
-        <div viUploaderDrop
-             [uploader]="uploader"
-             [class.active]="hasFileOver"
-             (fileOver)="hasFileOver = $event"
-             class="drop-zone">
-            <p>Перетащите изображение сюда или нажмите для выбора</p>
-            <input type="file"
-                   accept="image/*"
-                   (change)="onFileSelected($event)"
-                   #fileInput
-                   hidden>
-            <button (click)="fileInput.click()">Выбрать файл</button>
-        </div>
-
-        <div *ngIf="preview" class="preview">
-            <img [src]="preview" alt="Превью">
-            <button (click)="upload()">Загрузить</button>
-            <button (click)="cancel()">Отмена</button>
-        </div>
-
-        <div *ngIf="uploader.isUploading" class="progress">
-            Загрузка: {{ uploader.progress }}%
-        </div>
-    `
-})
-export class ImageUploadComponent {
-    uploader: Uploader;
-    hasFileOver = false;
-    preview: string;
-
-    constructor() {
-        this.uploader = new Uploader({
-            url: '/api/upload/image',
-            maxFileSize: 5 * 1024 * 1024,  // 5 МБ
-            allowedMimeType: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-        });
-
-        this.uploader.onAfterAddingFile = (file) => this.showPreview(file);
-        this.uploader.onCompleteItem = (file, response) => this.onComplete(response);
-        this.uploader.onErrorItem = (file, response) => this.onError(response);
-    }
-
-    async onFileSelected(event: Event): Promise<void> {
-        const input = event.target as HTMLInputElement;
-        if (input.files?.length) {
-            this.uploader.addToQueue(input.files);
-        }
-    }
-
-    async showPreview(file: UploaderFile): Promise<void> {
-        const loader = new Base64FileLoader();
-        const base64 = await loader.load(file._file);
-        this.preview = base64.data;
-    }
-
-    upload(): void {
-        this.uploader.uploadAll();
-    }
-
-    cancel(): void {
-        this.uploader.clearQueue();
-        this.preview = null;
-    }
-
-    onComplete(response: any): void {
-        console.log('Загружено:', response);
-        this.preview = null;
-    }
-
-    onError(response: any): void {
-        console.error('Ошибка:', response);
-    }
-}
-```
-
-### Множественная загрузка с прогрессом
-
-```typescript
-import { Component } from '@angular/core';
-import { Uploader, UploaderFile } from '@ts-core/frontend-angular-file';
-
-@Component({
-    selector: 'app-multi-upload',
-    template: `
-        <div viUploaderDrop [uploader]="uploader" class="drop-zone">
-            Перетащите файлы сюда
-        </div>
-
-        <div class="queue" *ngIf="uploader.queue.length">
-            <h4>Очередь загрузки ({{ uploader.queue.length }} файлов)</h4>
-
-            <div *ngFor="let file of uploader.queue" class="file-item">
-                <span class="name">{{ file.name }}</span>
-                <span class="size">{{ formatSize(file.size) }}</span>
-
-                <div class="progress-bar" *ngIf="file.isUploading">
-                    <div [style.width.%]="file.progress"></div>
-                </div>
-
-                <span class="status" [class.success]="file.isSuccess" [class.error]="file.isError">
-                    {{ getStatus(file) }}
-                </span>
-
-                <button (click)="uploader.removeFromQueue(file)" *ngIf="!file.isUploading">
-                    Удалить
-                </button>
-            </div>
-
-            <div class="actions">
-                <button (click)="uploader.uploadAll()" [disabled]="uploader.isUploading">
-                    Загрузить всё
-                </button>
-                <button (click)="uploader.cancelAll()" *ngIf="uploader.isUploading">
-                    Отменить
-                </button>
-                <button (click)="uploader.clearQueue()">
-                    Очистить
-                </button>
-            </div>
-        </div>
-    `
-})
-export class MultiUploadComponent {
-    uploader = new Uploader({
-        url: '/api/upload',
-        maxFileSize: 50 * 1024 * 1024,  // 50 МБ
-        queueLimit: 10
-    });
-
-    formatSize(bytes: number): string {
-        if (bytes < 1024) return bytes + ' Б';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ';
-        return (bytes / 1024 / 1024).toFixed(1) + ' МБ';
-    }
-
-    getStatus(file: UploaderFile): string {
-        if (file.isUploading) return `${file.progress}%`;
-        if (file.isSuccess) return 'Загружен';
-        if (file.isError) return 'Ошибка';
-        return 'Ожидает';
-    }
-}
-```
-
-## Связанные пакеты
-
-| Пакет | Описание |
-|-------|----------|
-| `@ts-core/frontend-angular` | Angular фронтенд утилиты |
-
-## Автор
-
-**Renat Gubaev** — [renat.gubaev@gmail.com](mailto:renat.gubaev@gmail.com)
-
-- GitHub: [ManhattanDoctor](https://github.com/ManhattanDoctor)
-- Репозиторий: [ts-core-frontend-angular-file](https://github.com/ManhattanDoctor/ts-core-frontend-angular-file)
+Публичный API не менялся: `VIFileModule` работает по-прежнему, селектор директивы и события загрузчика совпадают с предыдущими версиями.
 
 ## Лицензия
 
-ISC
+ISC © Renat Gubaev
