@@ -56,5 +56,26 @@
         "prettier": "^3.4.2",
         "ts-node": "^10.9.2",
         "typescript": "^6.0.3"
-    }
+    },
+    "description": "File uploading for Angular applications of the ts-core ecosystem: upload queue, progress tracking, drag and drop and Base64 handling",
+    "keywords": [
+        "typescript",
+        "angular",
+        "frontend",
+        "file",
+        "upload",
+        "uploader",
+        "drag-and-drop",
+        "base64",
+        "progress",
+        "ng2-file-upload"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ManhattanDoctor/ts-core-frontend-angular-file.git"
+    },
+    "bugs": {
+        "url": "https://github.com/ManhattanDoctor/ts-core-frontend-angular-file/issues"
+    },
+    "homepage": "https://github.com/ManhattanDoctor/ts-core-frontend-angular-file#readme"
 }
